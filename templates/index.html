@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+        <title>Study Chatbot</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+    </head>
+    <body>
+        <form method="post">
+            <input type="text" name="message">
+        </form>
+        {% for message in history %}
+            <p> <strong>{{message.role | capitalize }}: </strong> {{message.content | capitalize}}</p>
+        {% endfor %}
+    </body>
+</html>
