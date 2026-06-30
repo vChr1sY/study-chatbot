@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, session, request
 from groq import Groq
 from dotenv import load_dotenv
+from rag import chunk_text, score_chunks
 import os
 
 load_dotenv()
@@ -15,23 +16,46 @@ client = Groq(
 def home():
 
     if "history" not in session:
-        session['history'] = []
-
-    if len(session["history"]) == 1:
-        item = {"role": "system", "content": "You are a helpful study assistant. Answer questions clearly and concisely."}
-        list.insert(0, item)
+        session["history"] = [{"role": "system", "content": "You are a helpful study assistant. Answer questions clearly and concisely."}]
+      
 
     if request.method == "POST":
-         
+        
         message = request.form["message"]
+        file = request.files["file"]
+        
+        if file.filename:
+            punctuation = ".,?!;:'\"-"
+            stopwords = ["what", "is", "the", "of", "how", "a", "an", 
+                                "does", "are", "in", "to", "for", "do", "i", "me"]
             
+            keywords = []
+
+            text = file.read()
+            clean_text = text.decode("utf-8")
+            
+            chunks = chunk_text(clean_text)
+
+            message_formatted = message.split()
+
+            for word in message_formatted:
+                word_lower = word.lower()
+                word_stripped = word_lower.strip(punctuation)
+
+                if word_stripped not in stopwords:
+                    keywords.append(word_stripped)
+            
+            relevant_info = score_chunks(chunks, keywords)
+            
+            session["history"][0]["content"] = f"You are a helpful study assistant. Answer questions clearly and concisely. Use the relevant information to better help the user: {relevant_info}"
+
         session["history"].append({"role": "user", "content": message})
 
         chat_completion = client.chat.completions.create(
             messages= session["history"],
             model="llama-3.3-70b-versatile",
         )
-
+        
         result = chat_completion.choices[0].message.content
         session["history"].append({"role": "assistant", "content": result})
         session.modified = True
@@ -40,5 +64,6 @@ def home():
     
     return render_template('index.html', history = session["history"])
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+        app.run(debug=True)

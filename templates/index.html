@@ -1,15 +1,38 @@
 <!DOCTYPE html>
 <html>
-    <head> 
-        <title>Study Chatbot</title>
-        <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
-    </head>
-    <body>
-        <form method="post">
-            <input type="text" name="message">
-        </form>
-        {% for message in history %}
-            <p> <strong>{{message.role | capitalize }}: </strong> {{message.content | capitalize}}</p>
-        {% endfor %}
-    </body>
+        <head> 
+            <title>Study Chatbot</title>
+            <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+        </head>
+        <body>
+
+            <div class="container">
+                <h1 class="title"> 
+                    Miote.
+                </h1>
+                <h2 class="subtitle">
+                    The study partner that you'll love.
+                </h2>   
+
+                <div class="form">
+                    <form method="post" enctype="multipart/form-data">
+                        <div class="input-bar">
+                            <input type="text" name="message" placeholder="Ask a question...">
+                            <input type="file" name="file">
+                            <button type="submit">Submit</button>
+                        </div>
+                    </form>
+                </div>
+
+                {% for message in history %}
+                    {% if message.role != "system" %}
+    
+                        <div class="{{ message.role }}">
+                        {{ message.content | capitalize }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+              </div>
+        </body>
 </html>
