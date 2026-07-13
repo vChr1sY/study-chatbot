@@ -1,4 +1,5 @@
-
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 def chunk_text(text):
     chunks = []
@@ -8,49 +9,43 @@ def chunk_text(text):
 
     return chunks
 
-def score_chunks(chunks, keywords):
+def score_chunks(chunks, question):
     
-    punctuation = ".,?!;:'\"-()"
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+
     result = {}
+    
+    emb1 = model.encode(question)
 
     for index, chunk in enumerate(chunks):
-        cleaned_chunks = []
 
-        chunk_lower = chunk.lower()
-        chunk_splitted =  chunk.split()
-        score = 0
+        emb2 = model.encode(chunk)
 
-        for word in chunk_splitted:
-            cleaned_word = word.strip(punctuation)
-            cleaned_chunks.append(cleaned_word)
-        
-        for word in cleaned_chunks:
-            if word in keywords:
-                score += 1
-        
+        score = cosine_similarity([emb1], [emb2])[0][0]
+
         result[index] = score
 
-        result_max = max(result.values())
 
-        if result == 0:
-            return None
-        
+    result_value = max(result.values())
 
-        sorted_results = list(sorted(result.items(), key=lambda x: x[1], reverse=True))
+    if result_value == 0.3:
+        return None
 
-        best_indexs = (sorted_results[:3])
+    sorted_results = list(sorted(result.items(), key=lambda x: x[1], reverse=True))
 
-        best_index = []
+    best_indexs = (sorted_results[:3])
 
-        for index in best_indexs:
-            best_index.append(index[0])
-        
-        best_chunks = []
+    best_index = []
 
-        for index in best_index:
-            best_chunks.append(chunks[index])
+    for index in best_indexs:
+        best_index.append(index[0])
+            
+    best_chunks = []
 
-        joined = " ".join(best_chunks)
+    for index in best_index:
+        best_chunks.append(chunks[index])
 
-        return joined
+    joined = " ".join(best_chunks)
+
+    return joined
         

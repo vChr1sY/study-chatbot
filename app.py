@@ -25,27 +25,13 @@ def home():
         file = request.files["file"]
         
         if file.filename:
-            punctuation = ".,?!;:'\"-"
-            stopwords = ["what", "is", "the", "of", "how", "a", "an", 
-                                "does", "are", "in", "to", "for", "do", "i", "me"]
-            
-            keywords = []
 
             text = file.read()
             clean_text = text.decode("utf-8")
             
             chunks = chunk_text(clean_text)
-
-            message_formatted = message.split()
-
-            for word in message_formatted:
-                word_lower = word.lower()
-                word_stripped = word_lower.strip(punctuation)
-
-                if word_stripped not in stopwords:
-                    keywords.append(word_stripped)
             
-            relevant_info = score_chunks(chunks, keywords)
+            relevant_info = score_chunks(chunks, message)
             
             session["history"][0]["content"] = f"You are a helpful study assistant. Answer questions clearly and concisely. Use the relevant information to better help the user: {relevant_info}"
 
